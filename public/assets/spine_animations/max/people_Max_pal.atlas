@@ -1,0 +1,184 @@
+people_Max_pal.png
+size:2033,1650
+filter:Linear,Linear
+scale:0.9
+max listen/ae li
+bounds:1953,301,99,78
+offsets:0,1,100,80
+rotate:90
+max listen/e li
+bounds:1955,718,85,69
+offsets:1,1,87,71
+rotate:90
+max listen/faceli
+bounds:2,1004,687,644
+max listen/l blink li
+bounds:2,46,95,178
+max listen/l blink lsh li
+bounds:2,3,101,41
+offsets:1,1,103,43
+max listen/l brow li
+bounds:735,381,37,66
+offsets:1,1,39,68
+rotate:90
+max listen/l eye lash li
+bounds:1710,93,93,189
+offsets:1,2,95,192
+rotate:90
+max listen/l eye pup li
+bounds:1876,1368,66,151
+offsets:1,1,68,153
+rotate:90
+max listen/l eye whte li
+bounds:661,420,80,176
+offsets:1,2,82,179
+rotate:90
+max listen/nor li
+bounds:1798,1074,117,56
+offsets:1,1,119,58
+max listen/nose li
+bounds:803,369,49,35
+offsets:1,1,51,36
+rotate:90
+max listen/o li
+bounds:1955,805,70,79
+offsets:2,1,73,81
+max listen/r blink lash li
+bounds:1050,18,196,41
+offsets:1,1,198,42
+rotate:90
+max listen/r blink li
+bounds:545,14,165,179
+rotate:90
+max listen/r brow li
+bounds:661,371,47,72
+offsets:1,2,49,75
+rotate:90
+max listen/r eye base li
+bounds:1510,68,157,198
+rotate:90
+max listen/r eye lash li
+bounds:378,212,165,221
+max listen/r hnd li
+bounds:123,2,253,431
+max listen/r pupil li
+bounds:546,363,113,165
+offsets:1,1,115,167
+max listen/r sleve li
+bounds:1798,1132,233,203
+offsets:23,0,256,203
+rotate:90
+max listen/smile li
+bounds:1953,97,119,70
+offsets:1,1,121,72
+rotate:90
+max/brush
+bounds:2,226,119,776
+max/clrpallet
+bounds:378,14,196,165
+rotate:90
+max/max_ EyeBase_L
+bounds:849,24,190,199
+offsets:1,1,192,202
+rotate:90
+max/max_ EyeBase_R
+bounds:1309,36,189,199
+offsets:2,1,192,202
+rotate:90
+max/max_ L_Ear
+bounds:1097,227,325,652
+rotate:90
+max/max_ R_Ear
+bounds:1097,554,326,652
+rotate:90
+max/max_Aa
+bounds:1953,218,77,81
+offsets:1,0,79,82
+max/max_Arm_L
+bounds:1609,1072,187,279
+max/max_Arm_R
+bounds:1323,912,187,279
+rotate:90
+max/max_Blink_L
+bounds:1636,1367,238,67
+max/max_Blink_R
+bounds:1955,478,238,67
+rotate:90
+max/max_D
+bounds:1901,16,120,79
+offsets:1,1,122,81
+max/max_Dress
+bounds:123,435,421,567
+max/max_Ee
+bounds:1504,1353,130,81
+offsets:1,1,132,83
+max/max_Eyebrow_L
+bounds:1948,1441,58,74
+offsets:1,3,61,78
+rotate:90
+max/max_Eyebrow_R
+bounds:1955,419,57,74
+offsets:2,3,60,78
+rotate:90
+max/max_Eyelash_L
+bounds:1504,1436,212,220
+rotate:90
+max/max_Eyelash_R
+bounds:1726,1436,212,220
+rotate:90
+max/max_Eyelid_Top_L
+bounds:1095,26,212,199
+offsets:0,1,212,200
+max/max_Eyelid_Top_R
+bounds:1751,188,212,200
+rotate:90
+max/max_Foot_L
+bounds:1604,884,186,212
+rotate:90
+max/max_Foot_R
+bounds:1818,886,186,212
+rotate:90
+max/max_Hand_L
+bounds:545,181,180,302
+rotate:90
+max/max_Hand_R
+bounds:1323,1346,179,302
+max/max_Head
+bounds:691,882,766,630
+rotate:90
+max/max_Neck
+bounds:546,530,152,131
+rotate:90
+max/max_Neutral
+bounds:726,35,144,61
+offsets:1,1,146,63
+rotate:90
+max/max_Nose
+bounds:1917,1096,63,34
+offsets:1,1,65,36
+max/max_Pant_L
+bounds:1751,643,202,239
+max/max_Pant_R
+bounds:1751,402,202,239
+max/max_Pupil_L
+bounds:546,844,140,158
+offsets:0,1,141,160
+max/max_Pupil_R
+bounds:546,684,139,158
+offsets:1,1,141,160
+max/max_S
+bounds:1948,1501,147,79
+offsets:2,1,150,81
+rotate:90
+max/max_Shine_L
+bounds:1323,884,26,26
+max/max_Shine_R
+bounds:661,504,24,24
+offsets:1,1,26,26
+max/max_Sleve_L
+bounds:1323,1101,243,284
+rotate:90
+max/max_Sleve_R
+bounds:849,216,244,284
+max/max_Torso
+bounds:688,502,407,378
