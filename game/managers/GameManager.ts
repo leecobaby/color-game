@@ -1,3 +1,7 @@
+import { Howler } from "howler"; // 导入Howler用于全局控制方法
+import { Ticker } from "pixi.js"; // 显式导入Ticker
+
+
 import { AssetLoader, Asset } from "./AssetLoader";
 import { SceneManager } from "./SceneManager";
 import { TaskManager, Task } from "./TaskManager"; // Task接口可能在这里或全局定义
@@ -9,8 +13,6 @@ import GameEventEmitter from "../utils/GameEventEmitter";
 // import { MainScene } from '../scenes/MainScene';
 // MainScene构造函数的占位符类型，当可用时替换为实际的MainScene导入
 import { BaseScene } from "../scenes/BaseScene";
-import { Howler } from "howler"; // 导入Howler用于全局控制方法
-import { Ticker } from "pixi.js"; // 显式导入Ticker
 
 export enum GameState {
   SPLASH,
@@ -190,9 +192,7 @@ export class GameManager {
         TaskManager.loadTasks(taskData.tasks);
         console.log("任务数据已加载和解析。");
       } else {
-        throw new Error(
-          "tasks.json格式不符合预期（缺少'tasks'数组）。"
-        );
+        throw new Error("tasks.json格式不符合预期（缺少'tasks'数组）。");
       }
     } catch (error) {
       console.error("加载任务数据时出错:", error);
@@ -240,7 +240,8 @@ export class GameManager {
     if (this.currentState === GameState.PLAYING) {
       this.currentState = GameState.PAUSED;
       this.pixiAppInstance.app.ticker.stop();
-      Howler.pause(); // Pauses all Howler sounds
+      AudioManager.pauseBGM();
+      // Howler.pause(); // Pauses all Howler sounds
       GameEventEmitter.emit("GAME_PAUSED");
       console.log("Game PAUSED.");
     }
@@ -282,9 +283,7 @@ export class GameManager {
   }
 
   public static transitionToState(newState: GameState): void {
-    console.log(
-      `游戏状态从 ${this.currentState} 转换到 ${newState}`
-    );
+    console.log(`游戏状态从 ${this.currentState} 转换到 ${newState}`);
     this.currentState = newState;
     GameEventEmitter.emit("GAME_STATE_CHANGED", newState);
   }

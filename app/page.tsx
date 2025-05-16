@@ -1,7 +1,5 @@
-"use client"; // GameContainer 需要客户端渲染
-
-import Image from "next/image";
-import GameContainer from "../GameContainer"; // 导入 GameContainer
+"use client";
+import GameContainer from "@/components/GameContainer";
 
 export default function Home() {
   return (

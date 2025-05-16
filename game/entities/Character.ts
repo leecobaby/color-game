@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
-import { Spine, ITrackEntry } from "pixi-spine"; // 确保导入 Spine 和 ITrackEntry
-import { AssetLoader } from "../managers/AssetLoader";
+import { Spine, TrackEntry } from "@esotericsoftware/spine-pixi-v8";
+
 import { AnimationManager } from "../managers/AnimationManager";
 import { AudioManager } from "../managers/AudioManager";
 
@@ -11,38 +11,35 @@ export class Character extends PIXI.Container {
   constructor(entityId: string, spineName: string, autoUpdate: boolean = true) {
     super();
     this.entityId = entityId;
-    this.name = entityId; // 指定名称，方便在 Pixi 开发工具中调试
+    this.label = entityId; // 指定名称，方便在 Pixi 开发工具中调试
 
     try {
-      const spineData = AssetLoader.getSpineData(spineName);
-      if (!spineData) {
-        // AssetLoader.getSpineData 在找不到时应该抛出错误，但再次检查
-        console.error(
-          `Character: 未找到 "${spineName}" 的 Spine 数据！实体 ID: ${entityId}` // 中文翻译
-        );
-        return; // 如果 Spine 数据丢失，则提前退出
-      }
-      this.spine = new Spine(spineData);
-      this.spine.autoUpdate = autoUpdate; // 通过构造函数控制 autoUpdate
+      const skeletonKey = `${spineName}_skel`;
+      const atlasKey = `${spineName}_atlas`;
+
+      this.spine = Spine.from({
+        skeleton: skeletonKey,
+        atlas: atlasKey,
+        autoUpdate,
+      });
       this.addChild(this.spine);
     } catch (error) {
       console.error(
-        `Character: 为 "${spineName}" 创建 Spine 实例失败 (实体 ID: ${entityId}):`, // 中文翻译
+        `Character: 为 \"${spineName}\" (skeletonKey: ${spineName}_skel, atlasKey: ${spineName}_atlas) 创建 Spine 实例失败 (实体 ID: ${entityId}):`,
         error
       );
-      // this.spine 保持为 null
     }
   }
 
   public playAnimation(
     animationName: string,
     loop: boolean,
-    onComplete?: (entry: ITrackEntry) => void,
+    onComplete?: (entry: TrackEntry) => void,
     trackIndex: number = 0
-  ): ITrackEntry | null {
+  ): TrackEntry | null {
     if (!this.spine) {
       console.warn(
-        `Character ${this.entityId}: 无法播放动画，Spine 对象丢失。` // 中文翻译
+        `Character ${this.entityId}: 无法播放动画，Spine 对象丢失。`
       );
       return null;
     }
@@ -75,10 +72,10 @@ export class Character extends PIXI.Container {
     loop: boolean,
     delay: number = 0,
     trackIndex: number = 0
-  ): ITrackEntry | null {
+  ): TrackEntry | null {
     if (!this.spine) {
       console.warn(
-        `Character ${this.entityId}: 无法添加动画，Spine 对象丢失。` // 中文翻译
+        `Character ${this.entityId}: 无法添加动画，Spine 对象丢失。`
       );
       return null;
     }
@@ -94,7 +91,7 @@ export class Character extends PIXI.Container {
   public setSkin(skinName: string): void {
     if (!this.spine) {
       console.warn(
-        `Character ${this.entityId}: 无法设置皮肤，Spine 对象丢失。` // 中文翻译
+        `Character ${this.entityId}: 无法设置皮肤，Spine 对象丢失。`
       );
       return;
     }
@@ -105,13 +102,13 @@ export class Character extends PIXI.Container {
     soundName: string,
     animationName?: string,
     onSoundComplete?: () => void,
-    onAnimationComplete?: (entry: ITrackEntry) => void
+    onAnimationComplete?: (entry: TrackEntry) => void
   ): void {
     if (animationName && this.spine) {
       this.playAnimation(animationName, false, onAnimationComplete);
     } else if (animationName && !this.spine) {
       console.warn(
-        `Character ${this.entityId}: 无法播放 say() 的动画 ${animationName}，Spine 对象丢失。` // 中文翻译
+        `Character ${this.entityId}: 无法播放 say() 的动画 ${animationName}，Spine 对象丢失。`
       );
     }
     AudioManager.playSFX(soundName, undefined, onSoundComplete);
@@ -119,14 +116,14 @@ export class Character extends PIXI.Container {
 
   public show(
     animationName?: string,
-    onComplete?: (entry: ITrackEntry) => void
+    onComplete?: (entry: TrackEntry) => void
   ): void {
     this.visible = true;
     if (animationName && this.spine) {
       this.playAnimation(animationName, false, onComplete);
     } else if (animationName && !this.spine) {
       console.warn(
-        `Character ${this.entityId}: 无法播放显示动画，Spine 对象丢失。` // 中文翻译
+        `Character ${this.entityId}: 无法播放显示动画，Spine 对象丢失。`
       );
     }
     // TODO: 如果需要，添加出现时的缓动动画，例如 alpha 淡入
@@ -134,7 +131,7 @@ export class Character extends PIXI.Container {
 
   public hide(
     animationName?: string,
-    onComplete?: (entry: ITrackEntry) => void
+    onComplete?: (entry: TrackEntry) => void
   ): void {
     if (animationName && this.spine) {
       this.playAnimation(animationName, false, (entry) => {
@@ -144,7 +141,7 @@ export class Character extends PIXI.Container {
     } else {
       if (animationName && !this.spine) {
         console.warn(
-          `Character ${this.entityId}: 无法播放隐藏动画，Spine 对象丢失。` // 中文翻译
+          `Character ${this.entityId}: 无法播放隐藏动画，Spine 对象丢失。`
         );
       }
       this.visible = false;

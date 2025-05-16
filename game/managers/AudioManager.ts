@@ -52,6 +52,12 @@ export class AudioManager {
     this.currentBGMName = null;
   }
 
+  public static pauseBGM(): void {
+    if (this.currentBGM) {
+      this.currentBGM.howl.pause(this.currentBGM.id);
+    }
+  }
+
   public static resumeBGM(): void {
     if (this.currentBGMName && !this.currentBGM) {
       this.playBGM(

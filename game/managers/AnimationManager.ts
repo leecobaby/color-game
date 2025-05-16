@@ -1,24 +1,9 @@
-// 假设你已经安装了 pixi-spine，例如通过 npm install @pixi-spine/all-4.1 (针对 Spine 4.1)
-// 并且 TypeScript 正确识别了其类型。
-// 请确保根据你的 pixi-spine 版本和设置从正确的路径导入 Spine。
 import {
   Spine,
-  IAnimationState,
-  ITrackEntry,
-  IEventData,
-  ISkeleton,
-} from "pixi-spine";
-
-// 为清晰起见，重新定义一个更简单的监听器结构，匹配常见的 pixi-spine 用法。
-// pixi-spine 中的 IAnimationStateListener 接口可能更复杂。
-interface AnimationStateListener {
-  event?: (entry: ITrackEntry, event: IEventData) => void;
-  complete?: (entry: ITrackEntry) => void;
-  start?: (entry: ITrackEntry) => void;
-  end?: (entry: ITrackEntry) => void;
-  dispose?: (entry: ITrackEntry) => void;
-  interrupted?: (entry: ITrackEntry) => void;
-}
+  TrackEntry,
+  Event,
+  AnimationStateListener,
+} from "@esotericsoftware/spine-pixi-v8";
 
 export class AnimationManager {
   public static playAnimation(
@@ -26,7 +11,7 @@ export class AnimationManager {
     animationName: string,
     loop: boolean,
     trackIndex: number = 0
-  ): ITrackEntry | null {
+  ): TrackEntry | null {
     if (
       !spineEntity ||
       !spineEntity.state ||
@@ -48,14 +33,14 @@ export class AnimationManager {
     loop: boolean,
     trackIndex: number = 0,
     delay: number = 0
-  ): ITrackEntry | null {
+  ): TrackEntry | null {
     if (
       !spineEntity ||
       !spineEntity.state ||
       !spineEntity.skeleton.data.findAnimation(animationName)
     ) {
       console.warn(
-        `AnimationManager: 未找到动画 "${animationName}" 或 spine 实体对于 addAnimation 无效。`
+        `AnimationManager: 未找到动画 \"${animationName}\" 或 spine 实体对于 addAnimation 无效。`
       );
       return null;
     }
@@ -68,15 +53,24 @@ export class AnimationManager {
   }
 
   public static setSkin(spineEntity: Spine, skinName: string): void {
-    if (!spineEntity || !spineEntity.skeleton) {
-      console.warn("AnimationManager: Spine 实体或骨架对于 setSkin 无效。");
+    if (!spineEntity.skeleton.data) {
+      console.warn(
+        "AnimationManager: Spine 实体、骨架或骨架数据对于 setSkin 无效。"
+      );
       return;
     }
     try {
-      spineEntity.skeleton.setSkinByName(skinName);
-      spineEntity.skeleton.setSlotsToSetupPose(); // 更改皮肤后将插槽重置为设置姿势
+      const skin = spineEntity.skeleton.data.findSkin(skinName);
+      if (skin) {
+        spineEntity.skeleton.setSkin(skin);
+        spineEntity.skeleton.setSlotsToSetupPose(); // 更改皮肤后将插槽重置为设置姿势
+      } else {
+        console.warn(
+          `AnimationManager: 未在骨架数据中找到皮肤 \"${skinName}\"`
+        );
+      }
     } catch (e) {
-      console.error(`AnimationManager: 设置皮肤 "${skinName}" 时出错:`, e);
+      console.error(`AnimationManager: 设置皮肤 \"${skinName}\" 时出错:`, e);
     }
   }
 
@@ -91,7 +85,7 @@ export class AnimationManager {
       return null;
     }
     const currentTrackEntry = spineEntity.state.getCurrent(trackIndex);
-    return currentTrackEntry ? currentTrackEntry.animation.name : null;
+    return currentTrackEntry?.animation?.name ?? null;
   }
 
   /**
@@ -103,7 +97,7 @@ export class AnimationManager {
   public static listenToAnimationEvent(
     spineEntity: Spine,
     eventName: string,
-    callback: (entry: ITrackEntry, event: IEventData) => void
+    callback: (entry: TrackEntry, event: Event) => void
   ): AnimationStateListener {
     if (!spineEntity || !spineEntity.state) {
       console.warn(
@@ -113,7 +107,7 @@ export class AnimationManager {
       return { event: () => {} };
     }
     const listener: AnimationStateListener = {
-      event: (entry: ITrackEntry, event: IEventData) => {
+      event: (entry, event) => {
         if (event.data.name === eventName) {
           callback(entry, event);
         }
@@ -133,8 +127,8 @@ export class AnimationManager {
    */
   public static onAnimationComplete(
     spineEntity: Spine,
-    animationName: string, // 可以为 null 以监听轨道上任何动画的完成
-    callback: (entry: ITrackEntry) => void,
+    animationName: string | null,
+    callback: (entry: TrackEntry) => void,
     once: boolean = true
     // trackIndex?: number // 可选：如果你想非常具体地指定用于通用完成的轨道
   ): AnimationStateListener {
@@ -146,10 +140,10 @@ export class AnimationManager {
     }
 
     const listener: AnimationStateListener = {
-      complete: (entry: ITrackEntry) => {
+      complete: (entry: TrackEntry) => {
         // 如果提供了 animationName，则仅针对该动画触发。
         // 如果 entry.trackIndex 与指定的 trackIndex 匹配（如果提供）
-        if (animationName === null || entry.animation.name === animationName) {
+        if (animationName === null || entry.animation?.name === animationName) {
           callback(entry);
           if (once) {
             spineEntity.state.removeListener(listener);

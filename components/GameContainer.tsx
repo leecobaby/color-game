@@ -1,9 +1,10 @@
-import React, { useRef, useEffect, useState } from "react";
-import { PixiApp } from "./game1/core/PixiApp";
-import { GameManager } from "./game1/managers/GameManager";
-import GameEventEmitter from "./game1/utils/GameEventEmitter";
-import { MainScene } from "./game1/scenes/MainScene";
 import { Ticker } from "pixi.js";
+import React, { useRef, useEffect, useState } from "react";
+
+import { PixiApp } from "@/game/core/PixiApp";
+import { GameManager } from "@/game/managers/GameManager";
+import GameEventEmitter from "@/game/utils/GameEventEmitter";
+import { MainScene } from "@/game/scenes/MainScene";
 
 const GameContainer: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);

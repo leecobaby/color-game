@@ -1,8 +1,9 @@
 import * as PIXI from "pixi.js";
-import { AssetLoader } from "../managers/AssetLoader";
-import { Spine, ITrackEntry } from "pixi-spine";
+import { Spine } from "@esotericsoftware/spine-pixi-v8";
+
 import GameEventEmitter from "../utils/GameEventEmitter";
 import { AnimationManager } from "../managers/AnimationManager";
+import { AssetLoader } from "../managers/AssetLoader";
 
 // 此接口特定于 Palette 如何期望其选项。
 // 它与 TaskManager 的 ColorOption 对齐，后者在 tasks.json 中用于 SHOW_PALETTE 操作。
@@ -36,17 +37,25 @@ export class Palette extends PIXI.Container {
 
     // 尝试加载调色板背景 Spine (如果可用)
     try {
-      const paletteSpineData = AssetLoader.getSpineData(
-        this.PALETTE_SPINE_NAME
-      );
-      if (paletteSpineData) {
-        this.backgroundSpine = new Spine(paletteSpineData);
-        this.backgroundSpine.autoUpdate = true;
+      const skeletonKey = `${this.PALETTE_SPINE_NAME}_skel`;
+      const atlasKey = `${this.PALETTE_SPINE_NAME}_atlas`;
+
+      if (PIXI.Assets.get(skeletonKey) && PIXI.Assets.get(atlasKey)) {
+        this.backgroundSpine = Spine.from({
+          skeleton: skeletonKey,
+          atlas: atlasKey,
+          autoUpdate: true,
+        });
         this.addChildAt(this.backgroundSpine, 0); // 将背景添加到按钮后面
+      } else {
+        console.warn(
+          `Palette: Spine 资源键 "${skeletonKey}" 或 "${atlasKey}" 未在 PIXI.Assets 缓存中找到。调色板将没有背景动画。`
+        );
       }
     } catch (e) {
       console.warn(
-        `Palette: Spine 资源 "${this.PALETTE_SPINE_NAME}" 未找到或加载失败。调色板将没有背景动画。` // 中文翻译
+        `Palette: Spine 资源 "${this.PALETTE_SPINE_NAME}" (keys: ${this.PALETTE_SPINE_NAME}_skel, ${this.PALETTE_SPINE_NAME}_atlas) 未找到或加载失败。调色板将没有背景动画。`,
+        e
       );
       // 可选：添加静态精灵背景作为后备
       // const bgTexture = AssetLoader.getTexture('palette_bg'); // 如果有静态背景图片

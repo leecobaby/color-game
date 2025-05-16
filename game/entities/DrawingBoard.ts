@@ -1,9 +1,11 @@
 import * as PIXI from "pixi.js";
-import { AssetLoader } from "../managers/AssetLoader";
-import { Spine, ITrackEntry } from "pixi-spine";
+import { Spine } from "@esotericsoftware/spine-pixi-v8";
+
 import GameEventEmitter from "../utils/GameEventEmitter";
 import { AnimationManager } from "../managers/AnimationManager";
 import { TaskManager } from "../managers/TaskManager"; // 用于 TaskManager.getCurrentStep()
+import { AssetLoader } from "../managers/AssetLoader"; // 仍然需要 AssetLoader.getTexture
+import { AudioManager } from "../managers/AudioManager";
 
 export class DrawingBoard extends PIXI.Container {
   private background: PIXI.Sprite | Spine | null = null;
@@ -32,32 +34,31 @@ export class DrawingBoard extends PIXI.Container {
 
   constructor(id: string) {
     super();
-    this.name = id;
+    this.label = id;
     this.visible = false; // 初始隐藏
 
     try {
-      const boardSpineData = AssetLoader.getSpineData(this.BOARD_SPINE_NAME);
-      this.background = new Spine(boardSpineData);
-      (this.background as Spine).autoUpdate = true;
-      // 如果 Spine 动画设计为居中，其内部设置会处理。
-      // 否则，你可能需要调整其位置或使用包装容器。
-      this.addChild(this.background);
+      const skeletonKey = `${this.BOARD_SPINE_NAME}_skel`;
+      const atlasKey = `${this.BOARD_SPINE_NAME}_atlas`;
+      if (PIXI.Assets.get(skeletonKey) && PIXI.Assets.get(atlasKey)) {
+        this.background = Spine.from({
+          skeleton: skeletonKey,
+          atlas: atlasKey,
+          autoUpdate: true,
+        });
+        this.addChild(this.background);
+      } else {
+        console.warn(
+          `DrawingBoard: Spine 资源键 "${skeletonKey}" 或 "${atlasKey}" 未在 PIXI.Assets 缓存中找到。正在尝试静态背景。`
+        );
+        this.tryLoadStaticBackground();
+      }
     } catch (e) {
       console.warn(
-        `DrawingBoard: Spine 资源 "${this.BOARD_SPINE_NAME}" 未找到。正在尝试静态背景。` // 中文翻译
+        `DrawingBoard: Spine 资源 \"${this.BOARD_SPINE_NAME}\" (keys: ${this.BOARD_SPINE_NAME}_skel, ${this.BOARD_SPINE_NAME}_atlas) 加载失败。正在尝试静态背景。`,
+        e
       );
-      try {
-        const bgTexture = AssetLoader.getTexture("drawing_board_bg");
-        this.background = new PIXI.Sprite(bgTexture);
-        this.background.anchor.set(0.5); // 使背景精灵自身居中
-        this.background.position.set(0, 0); // 定位在 DrawingBoard 的原点
-        this.addChild(this.background);
-      } catch (e2) {
-        console.error(
-          `DrawingBoard: 静态背景 'drawing_board_bg' 也未找到。`, // 中文翻译
-          e2
-        );
-      }
+      this.tryLoadStaticBackground();
     }
 
     this.drawingArea = new PIXI.Container();
@@ -112,26 +113,41 @@ export class DrawingBoard extends PIXI.Container {
 
     // 播放画笔描绘轮廓动画
     try {
-      const brushAnimSpine = new Spine(
-        AssetLoader.getSpineData(this.BRUSH_ANIM_SPINE_NAME)
-      );
-      brushAnimSpine.autoUpdate = true;
-      const outlineAnimName = `${this.DRAW_OUTLINE_ANIM_PREFIX}${shapeNameKey}_anim`;
-      if (brushAnimSpine.skeleton.data.findAnimation(outlineAnimName)) {
-        this.drawingArea.addChild(brushAnimSpine);
-        AnimationManager.playAnimation(brushAnimSpine, outlineAnimName, false);
-        AnimationManager.onAnimationComplete(
-          brushAnimSpine,
-          outlineAnimName,
-          () => {
-            brushAnimSpine.destroy();
-            this.setupPaintingEnvironment(shapeNameKey);
-          },
-          true
-        );
+      const brushSkeletonKey = `${this.BRUSH_ANIM_SPINE_NAME}_skel`;
+      const brushAtlasKey = `${this.BRUSH_ANIM_SPINE_NAME}_atlas`;
+
+      if (PIXI.Assets.get(brushSkeletonKey) && PIXI.Assets.get(brushAtlasKey)) {
+        const brushAnimSpine = Spine.from({
+          skeleton: brushSkeletonKey,
+          atlas: brushAtlasKey,
+          autoUpdate: true,
+        });
+        const outlineAnimName = `${this.DRAW_OUTLINE_ANIM_PREFIX}${shapeNameKey}_anim`;
+        if (brushAnimSpine.skeleton.data.findAnimation(outlineAnimName)) {
+          this.drawingArea.addChild(brushAnimSpine);
+          AnimationManager.playAnimation(
+            brushAnimSpine,
+            outlineAnimName,
+            false
+          );
+          AnimationManager.onAnimationComplete(
+            brushAnimSpine,
+            outlineAnimName,
+            () => {
+              brushAnimSpine.destroy();
+              this.setupPaintingEnvironment(shapeNameKey);
+            },
+            true
+          );
+        } else {
+          console.warn(
+            `DrawingBoard: 在 "${this.BRUSH_ANIM_SPINE_NAME}" 中未找到轮廓动画 "${outlineAnimName}"。跳过到绘画设置。` // 中文翻译
+          );
+          this.setupPaintingEnvironment(shapeNameKey);
+        }
       } else {
         console.warn(
-          `DrawingBoard: 在 "${this.BRUSH_ANIM_SPINE_NAME}" 中未找到轮廓动画 "${outlineAnimName}"。跳过到绘画设置。` // 中文翻译
+          `DrawingBoard: Spine 资源键 "${brushSkeletonKey}" 或 "${brushAtlasKey}" 未在 PIXI.Assets 缓存中找到。正在尝试静态画笔。`
         );
         this.setupPaintingEnvironment(shapeNameKey);
       }
@@ -140,7 +156,8 @@ export class DrawingBoard extends PIXI.Container {
         `DrawingBoard: 加载或播放 ${shapeNameKey} 的画笔轮廓动画失败。`, // 中文翻译
         e
       );
-      this.setupPaintingEnvironment(shapeNameKey); // 回退到直接设置
+      this.handleOutlineLoadError(shapeNameKey, e);
+      return;
     }
   }
 
@@ -332,5 +349,35 @@ export class DrawingBoard extends PIXI.Container {
   public update(ticker: PIXI.Ticker): void {
     // 如果需要，画板本身的任何每帧更新。
     // 例如，如果画笔有其自身的动画且不与指针绑定。
+  }
+
+  // 将静态背景加载逻辑提取到一个辅助方法中
+  private tryLoadStaticBackground(): void {
+    try {
+      const bgTexture = AssetLoader.getTexture("drawing_board_bg");
+      this.background = new PIXI.Sprite(bgTexture);
+      this.background.anchor.set(0.5);
+      this.background.position.set(0, 0);
+      this.addChild(this.background);
+    } catch (e2) {
+      console.error(`DrawingBoard: 静态背景 'drawing_board_bg' 也未找到。`, e2);
+      // 确保 this.background 为 null 或有一个明确的非 Spine 状态
+      this.background = null;
+    }
+  }
+
+  // 将轮廓加载错误处理提取到一个辅助方法中
+  private handleOutlineLoadError(shapeNameKey: string, error: any): void {
+    console.error(
+      `DrawingBoard: 加载 ${shapeNameKey} 的轮廓纹理 \"${shapeNameKey}_outline\" 失败。绘画功能将受限。`,
+      error
+    );
+    // 可以在此处发出事件或设置状态，以表明画板未正确初始化
+    GameEventEmitter.emit("DRAWING_BOARD_INIT_ERROR", {
+      shapeNameKey,
+      error: `Failed to load outline texture ${shapeNameKey}_outline`,
+    });
+    // 确保画板隐藏或处于非交互状态
+    this.visible = false;
   }
 }

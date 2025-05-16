@@ -1,4 +1,4 @@
-import { Container, Ticker, Point, DisplayObject } from "pixi.js";
+import { Container, Ticker, Point, DisplayObject, PointData } from "pixi.js";
 import { PixiApp } from "../core/PixiApp";
 // import { gsap } from 'gsap'; // 如果使用 GSAP 进行缓动动画，则取消注释此行
 
@@ -47,7 +47,7 @@ export abstract class BaseScene extends Container {
       const screenWidth = app.screen.width;
       const screenHeight = app.screen.height;
 
-      let targetLocalPosInWorld: Point;
+      let targetLocalPosInWorld: PointData;
       if (target instanceof DisplayObject) {
         // 获取目标在其父容器坐标系中的位置，然后转换为世界（场景的 world 容器）的局部坐标
         // 如果 DisplayObject 的 transform 未更新，getGlobalPosition 可能会给出旧值
