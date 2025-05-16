@@ -15,55 +15,74 @@ const GameContainer: React.FC = () => {
     let pixiInst: PixiApp | null = null;
     let tickerListener: ((ticker: Ticker) => void) | null = null;
 
-    if (canvasRef.current && !canvasRef.current.firstChild) {
-      if (canvasRef.current.firstChild) {
-        canvasRef.current.removeChild(canvasRef.current.firstChild);
-      }
-      PixiApp.destroyInstance();
-
-      pixiInst = PixiApp.getInstance({
-        width: window.innerWidth,
-        height: window.innerHeight,
-        backgroundColor: 0x6495ed,
-        resolution: Math.min(window.devicePixelRatio || 1, 2),
-        autoDensity: true,
-      });
-      canvasRef.current.appendChild(pixiInst.view);
-
-      GameManager.init(
-        pixiInst,
-        (progress) => {
-          setLoadingProgress(progress);
-        },
-        MainScene
-      )
-        .then(() => {
-          setIsLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error initializing GameManager:", error);
-          setIsLoading(false);
-        });
-
-      tickerListener = (ticker: Ticker) => GameManager.update(ticker);
-      pixiInst.app.ticker.add(tickerListener);
-
-      const handleResize = () => {
-        if (pixiInst) {
-          pixiInst.resize(window.innerWidth, window.innerHeight);
+    const initPixiApp = async () => {
+      if (canvasRef.current && !canvasRef.current.firstChild) {
+        if (canvasRef.current.firstChild) {
+          canvasRef.current.removeChild(canvasRef.current.firstChild);
         }
-      };
-      window.addEventListener("resize", handleResize);
-
-      return () => {
-        window.removeEventListener("resize", handleResize);
-        if (pixiInst && tickerListener) {
-          pixiInst.app.ticker.remove(tickerListener);
-        }
-        GameEventEmitter.removeAllListeners();
         PixiApp.destroyInstance();
-      };
-    }
+
+        // 获取canvas容器的尺寸
+        const canvasWidth = canvasRef.current.clientWidth;
+        const canvasHeight = canvasRef.current.clientHeight;
+
+        // 使用异步方法初始化PixiApp
+        pixiInst = await PixiApp.getInstanceAsync({
+          width: canvasWidth,
+          height: canvasHeight,
+          backgroundColor: 0x6495ed,
+          resolution: Math.min(window.devicePixelRatio || 1, 2),
+          autoDensity: true,
+        });
+        console.log("pixiInst初始化完成", pixiInst);
+
+        if (canvasRef.current) {
+          canvasRef.current.appendChild(pixiInst.canvas);
+        }
+
+        // 使用初始化完成的PixiApp实例初始化GameManager
+        await GameManager.init(
+          pixiInst,
+          (progress) => {
+            setLoadingProgress(progress);
+          },
+          MainScene
+        )
+          .then(() => {
+            setIsLoading(false);
+          })
+          .catch((error) => {
+            console.error("初始化GameManager时出错:", error);
+            setIsLoading(false);
+          });
+
+        // 添加ticker监听器
+        tickerListener = (ticker: Ticker) => GameManager.update(ticker);
+        pixiInst.app.ticker.add(tickerListener);
+
+        // 设置窗口大小调整处理
+        const handleResize = () => {
+          if (pixiInst && canvasRef.current) {
+            const newWidth = canvasRef.current.clientWidth;
+            const newHeight = canvasRef.current.clientHeight;
+            pixiInst.resize(newWidth, newHeight);
+          }
+        };
+        window.addEventListener("resize", handleResize);
+
+        return () => {
+          window.removeEventListener("resize", handleResize);
+          if (pixiInst && tickerListener) {
+            pixiInst.app.ticker.remove(tickerListener);
+          }
+          GameEventEmitter.removeAllListeners();
+          PixiApp.destroyInstance();
+        };
+      }
+    };
+
+    // 执行异步初始化
+    initPixiApp();
   }, []);
 
   return (
@@ -114,7 +133,7 @@ const GameContainer: React.FC = () => {
           </div>
         </div>
       )}
-      <div ref={canvasRef} style={{ width: "100%", height: "100%" }} />
+      <div ref={canvasRef} className="w-3/4 h-3/4 mx-auto touch-none" />
     </div>
   );
 };

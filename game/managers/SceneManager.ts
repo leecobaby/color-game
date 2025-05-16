@@ -5,22 +5,37 @@ import * as PIXI from "pixi.js";
 export class SceneManager {
   private static currentScene: BaseScene | null = null;
   private static pixiAppInstance: PixiApp;
+  private static initialized: boolean = false;
 
-  // 初始化方法，用于提供 PixiApp 实例，如果不直接在各处使用单例的 getInstance
+  // 初始化方法，用于提供PixiApp实例
   public static initialize(pixiApp: PixiApp): void {
     this.pixiAppInstance = pixiApp;
+    this.initialized = true;
   }
 
-  // 确保 PixiApp 实例可用
-  private static getPixiApp(): PixiApp {
-    if (!this.pixiAppInstance) {
-      // 如果未初始化，则尝试获取实例，假设已在其他地方为 getInstance 提供了选项
-      this.pixiAppInstance = PixiApp.getInstance();
-      if (!this.pixiAppInstance) {
+  // 异步获取PixiApp实例
+  private static async getPixiAppAsync(): Promise<PixiApp> {
+    if (!this.pixiAppInstance || !this.initialized) {
+      // 如果未初始化，则尝试异步获取实例
+      try {
+        this.pixiAppInstance = await PixiApp.getInstanceAsync();
+        this.initialized = true;
+      } catch (error) {
+        console.error("SceneManager: 异步获取PixiApp实例失败", error);
         throw new Error(
-          "SceneManager: PixiApp 实例不可用。请先初始化 PixiApp 或将其传递给 SceneManager.initialize()。"
+          "SceneManager: PixiApp实例不可用。请先初始化PixiApp或将其传递给SceneManager.initialize()。"
         );
       }
+    }
+    return this.pixiAppInstance;
+  }
+
+  // 同步获取PixiApp实例（仅当已确保初始化完成时使用）
+  private static getPixiApp(): PixiApp {
+    if (!this.pixiAppInstance || !this.initialized) {
+      throw new Error(
+        "SceneManager: PixiApp实例尚未初始化。请先调用initialize()或使用getPixiAppAsync()。"
+      );
     }
     return this.pixiAppInstance;
   }
@@ -28,7 +43,9 @@ export class SceneManager {
   public static async goToScene(
     NewSceneClass: new () => BaseScene
   ): Promise<void> {
-    const app = this.getPixiApp().app;
+    // 使用异步方法获取PixiApp实例
+    const pixiApp = await this.getPixiAppAsync();
+    const app = pixiApp.app;
 
     if (this.currentScene) {
       await this.currentScene.onExit();

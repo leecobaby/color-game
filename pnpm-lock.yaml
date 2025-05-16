@@ -33,6 +33,9 @@ importers:
       '@eslint/eslintrc':
         specifier: ^3
         version: 3.3.1
+      '@pixi/devtools':
+        specifier: ^2.0.1
+        version: 2.0.1(pixi.js@8.9.2)
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.1.6
@@ -377,6 +380,11 @@ packages:
 
   '@pixi/colord@2.9.6':
     resolution: {integrity: sha512-nezytU2pw587fQstUu1AsJZDVEynjskwOL+kibwcdxsMBFqPsFFNA7xl0ii/gXuDi6M0xj3mfRJj8pBSc2jCfA==}
+
+  '@pixi/devtools@2.0.1':
+    resolution: {integrity: sha512-TFCqNkJoLNYHDELgQ3bKWvA33twWpoUhQB8Y+hneBdDBunRsqZ5ZzwH7+6E5eVaVn7eeLAXHs9QGRGsxM0fRlw==}
+    peerDependencies:
+      pixi.js: ^7 || ^8
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
@@ -2339,6 +2347,10 @@ snapshots:
   '@nolyfill/is-core-module@1.0.39': {}
 
   '@pixi/colord@2.9.6': {}
+
+  '@pixi/devtools@2.0.1(pixi.js@8.9.2)':
+    dependencies:
+      pixi.js: 8.9.2
 
   '@rtsao/scc@1.1.0': {}
 

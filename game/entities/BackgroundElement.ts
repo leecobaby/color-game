@@ -1,7 +1,5 @@
 import * as PIXI from "pixi.js";
-import { 
-  
- } from "../core/PixiApp"; // 如果需要直接访问屏幕尺寸等，可能会用到
+import { PixiApp } from "../core/PixiApp"; // 如果需要直接访问屏幕尺寸等，可能会用到
 
 export class BackgroundElement extends PIXI.Container {
   public sprite: PIXI.Sprite;
@@ -31,7 +29,7 @@ export class BackgroundElement extends PIXI.Container {
   constructor(id: string, texture: PIXI.Texture) {
     super();
     this.id = id;
-    this.name = id; // 用于调试
+    this.label = id; // 用于调试
     this.sprite = new PIXI.Sprite(texture);
     this.addChild(this.sprite);
   }

@@ -44,7 +44,10 @@ export class AssetLoader {
 
         // 推断 atlas 文件的路径
         // 将 .json 或 .skel 替换为 .atlas
-        const atlasUrl = asset.url.replace(/\.(json|skel)$/i, ".atlas");
+        const atlasUrl = asset.url.replace(
+          /\.(json|skel|skel.bytes)$/i,
+          ".atlas"
+        );
         if (atlasUrl === asset.url) {
           console.warn(
             `AssetLoader: 无法从 ${asset.url} 推断 Spine atlas 文件的路径。跳过 ${asset.name} 的 atlas 加载。`
@@ -73,6 +76,8 @@ export class AssetLoader {
         });
       }
     }
+
+    console.log("pixiAssetEntries", pixiAssetEntries);
 
     let pixiProgress = 0;
     let audioProgress = 0;

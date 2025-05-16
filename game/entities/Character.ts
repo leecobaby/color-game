@@ -17,6 +17,8 @@ export class Character extends PIXI.Container {
       const skeletonKey = `${spineName}_skel`;
       const atlasKey = `${spineName}_atlas`;
 
+      console.log("atlasKey", PIXI.Assets.get(skeletonKey));
+
       this.spine = Spine.from({
         skeleton: skeletonKey,
         atlas: atlasKey,

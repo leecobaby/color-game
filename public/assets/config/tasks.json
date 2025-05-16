@@ -1,0 +1,131 @@
+{
+  "tasks": [
+    {
+      "id": "learn_colors_and_shapes_v2",
+      "name": "Lesson 1",
+      "steps": [
+        {
+          "id": "intro_welcome_rabbit",
+          "action": "RABBIT_SPEECH",
+          "options": {
+            "voiceOver": "sfx_welcome",
+            "rabbitAnimation": "welcome_anim",
+            "nextStepDelay": 500
+          }
+        },
+        {
+          "id": "coloring_task_intro",
+          "action": "RABBIT_SPEECH",
+          "options": {
+            "voiceOver": "sfx_select_color_intro",
+            "rabbitAnimation": "explain_anim"
+          }
+        },
+        {
+          "id": "show_palette_loop_start",
+          "action": "SHOW_PALETTE",
+          "options": {
+            "voiceOver": "sfx_select_color",
+            "colors": [
+              {
+                "colorName": "green",
+                "targetWord": "frog",
+                "targetShapeOutline": "frog_outline",
+                "iconTextureName": "frog_icon_tex",
+                "colorSound": "sfx_color_green",
+                "reward": {
+                  "action": "ENTITY_REWARD_ANIMATION",
+                  "focusTargetName": "pond",
+                  "entitySpineName": "frog_spine",
+                  "entityCount": 3,
+                  "entityScale": 0.2,
+                  "entryAnimation": "jump_in_anim",
+                  "voiceOver": "sfx_frogs_croak",
+                  "nextStepDelay": 3000
+                }
+              },
+              {
+                "colorName": "red",
+                "targetWord": "apple",
+                "targetShapeOutline": "apple_outline",
+                "iconTextureName": "apple_icon_tex",
+                "colorSound": "sfx_color_red",
+                "reward": {
+                  "action": "ENTITY_REWARD_ANIMATION",
+                  "focusTargetName": "tree",
+                  "entitySpineName": "apple_spine",
+                  "entityCount": 4,
+                  "entityScale": 0.15,
+                  "entryAnimation": "fall_appear_anim",
+                  "voiceOver": "sfx_apples_fall",
+                  "nextStepDelay": 2500
+                }
+              },
+              {
+                "colorName": "blue",
+                "targetWord": "butterfly",
+                "targetShapeOutline": "butterfly_outline",
+                "iconTextureName": "butterfly_icon_tex",
+                "colorSound": "sfx_color_blue",
+                "reward": {
+                  "action": "ENTITY_REWARD_ANIMATION",
+                  "focusTargetName": "wildflowers",
+                  "entitySpineName": "butterfly_spine",
+                  "entityCount": 5,
+                  "entityScale": 0.1,
+                  "entryAnimation": "flutter_around_anim",
+                  "voiceOver": "sfx_butterflies_flutter",
+                  "nextStepDelay": 3500
+                }
+              },
+              {
+                "colorName": "yellow",
+                "targetWord": "flower",
+                "targetShapeOutline": "flower_outline",
+                "iconTextureName": "flower_icon_tex",
+                "colorSound": "sfx_color_yellow",
+                "reward": {
+                  "action": "ENTITY_REWARD_ANIMATION",
+                  "focusTargetName": "grass",
+                  "entitySpineName": "flower_spine",
+                  "entityCount": 6,
+                  "entityScale": 0.12,
+                  "entryAnimation": "bloom_quickly_anim",
+                  "voiceOver": "sfx_flowers_bloom",
+                  "nextStepDelay": 3000
+                }
+              }
+            ]
+          },
+          "awaitsEvent": "PALETTE_COLOR_SELECTED"
+        },
+        {
+          "id": "coloring_selected_shape",
+          "action": "SHOW_DRAWING_BOARD_FOR_COLORING",
+          "awaitsEvent": "TASK_STEP_ACTION_COMPLETE",
+          "eventDataCheck": { "action": "COLORING_COMPLETE" }
+        },
+        {
+          "id": "check_if_all_colors_done",
+          "action": "CHECK_REMAINING_TASK_ITEMS",
+          "options": {
+            "itemListNameFromStep": "show_palette_loop_start",
+            "itemListKey": "colors",
+            "itemIdentifierKey": "colorName"
+          },
+          "nextStepIfItemsRemain": "show_palette_loop_start",
+          "nextStepIfNoItemsRemain": "task_1_all_colors_complete_outro"
+        },
+        {
+          "id": "task_1_all_colors_complete_outro",
+          "action": "RABBIT_SPEECH",
+          "options": {
+            "voiceOver": "sfx_great_job_task1",
+            "rabbitAnimation": "celebrate_anim"
+          },
+          "isEndOfTask": true
+        }
+      ]
+    }
+  ]
+}

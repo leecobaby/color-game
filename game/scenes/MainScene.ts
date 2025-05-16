@@ -28,7 +28,7 @@ export class MainScene extends BaseScene {
 
   constructor() {
     super();
-    this.name = "MainScene";
+    this.label = "MainScene";
   }
 
   async onEnter(): Promise<void> {

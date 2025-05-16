@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@pixi/devtools": "^2.0.1",
     "@tailwindcss/postcss": "^4",
     "@types/howler": "^2.2.12",
     "@types/node": "^20",

@@ -1,4 +1,4 @@
-import { Container, Ticker, Point, DisplayObject, PointData } from "pixi.js";
+import { Container, Ticker, Point, PointData } from "pixi.js";
 import { PixiApp } from "../core/PixiApp";
 // import { gsap } from 'gsap'; // 如果使用 GSAP 进行缓动动画，则取消注释此行
 
@@ -21,14 +21,14 @@ export abstract class BaseScene extends Container {
 
   /**
    * 将世界相机聚焦于目标点或显示对象。
-   * @param target 要聚焦的 Point 或 DisplayObject 目标。
+   * @param target 要聚焦的 Point 或 Container 目标。
    * @param duration 聚焦动画的持续时间（秒）。0 表示立即聚焦。
    * @param zoomLevel 世界容器的期望缩放级别。
    * @param screenOffsetRatio 可选的屏幕中心偏移比率（例如 {x: 0, y: -0.1} 将焦点稍微向上移动）。
    * @returns 当聚焦动画完成时解析的 Promise。
    */
-  public focusOn(
-    target: Point | DisplayObject,
+  public async focusOn(
+    target: Point | Container,
     duration: number = 0.5,
     zoomLevel: number = 1,
     screenOffsetRatio?: { x: number; y: number }
@@ -48,10 +48,10 @@ export abstract class BaseScene extends Container {
       const screenHeight = app.screen.height;
 
       let targetLocalPosInWorld: PointData;
-      if (target instanceof DisplayObject) {
+      if (target instanceof Container) {
         // 获取目标在其父容器坐标系中的位置，然后转换为世界（场景的 world 容器）的局部坐标
-        // 如果 DisplayObject 的 transform 未更新，getGlobalPosition 可能会给出旧值
-        target.updateTransform();
+        // 如果 Container 的 transform 未更新，getGlobalPosition 可能会给出旧值
+        // target.updateTransform();
         const globalPos = target.getGlobalPosition(new Point());
         targetLocalPosInWorld = this.world.toLocal(
           globalPos,
