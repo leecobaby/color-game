@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { Application } from "pixi.js";
-import { GameManager } from "./game/GameManager";
+import { GameManager } from "../game-back/GameManager";
 
 export default function PixiCanvas({
   width = 1024,
