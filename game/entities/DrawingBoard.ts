@@ -9,7 +9,7 @@ import { AudioManager } from "../managers/AudioManager";
 
 export class DrawingBoard extends PIXI.Container {
   private background: PIXI.Sprite | Spine | null = null;
-  private drawingArea: PIXI.Container;
+  public drawingArea: PIXI.Container;
   private outlineSprite: PIXI.Sprite | null = null;
   private paintLayer: PIXI.Graphics;
   private brushSprite: PIXI.Sprite | null = null;
@@ -21,7 +21,7 @@ export class DrawingBoard extends PIXI.Container {
   private totalPixelsInShape: number = 0; // 形状中的总像素 (此处用绘制次数代替)
   private paintedPixelsCount: number = 0; // 使用绘制动作的次数作为代理
   private paintActionsToComplete: number = 50; // 任意值：认为"完成"所需的绘制动作次数
-  private readonly COMPLETION_THRESHOLD_ACTIONS = 50; // 示例：需要 50 次绘制动作
+  private readonly COMPLETION_THRESHOLD_ACTIONS = 500; // 示例：需要 50 次绘制动作
 
   private readonly BOARD_SPINE_NAME = "drawing_board_spine"; // 画板 Spine 资源名
   private readonly BRUSH_ANIM_SPINE_NAME = "brush_anim_spine"; // 画笔动画 Spine 资源名
@@ -40,12 +40,15 @@ export class DrawingBoard extends PIXI.Container {
     try {
       const skeletonKey = `${this.BOARD_SPINE_NAME}_skel`;
       const atlasKey = `${this.BOARD_SPINE_NAME}_atlas`;
+      // 画板背景 Spine
       if (PIXI.Assets.get(skeletonKey) && PIXI.Assets.get(atlasKey)) {
         this.background = Spine.from({
           skeleton: skeletonKey,
           atlas: atlasKey,
           autoUpdate: true,
         });
+        this.background.position.set(-127, 532);
+        this.background.scale.set(0.52, 0.5);
         this.addChild(this.background);
       } else {
         console.warn(
@@ -68,14 +71,15 @@ export class DrawingBoard extends PIXI.Container {
 
     this.paintLayer = new PIXI.Graphics();
     this.drawingArea.addChild(this.paintLayer); // paintLayer 位于 drawingArea 内的 (0,0)
+    this.drawingArea.position.set(200, 0);
 
     try {
       const brushTexture = AssetLoader.getTexture("brush_static");
       this.brushSprite = new PIXI.Sprite(brushTexture);
-      this.brushSprite.anchor.set(0.1, 0.9); // 调整锚点以模拟笔尖的感觉
+      this.brushSprite.anchor.set(0.1, 0.1); // 调整锚点以模拟笔尖的感觉
       this.brushSprite.visible = false;
-      this.brushSprite.scale.set(0.5); // 使画笔变小
-      this.addChild(this.brushSprite); // 画笔在所有元素之上移动，添加到 `this`
+      this.brushSprite.scale.set(0.3); // 使画笔变小
+      this.drawingArea.addChild(this.brushSprite); // 画笔添加到drawingArea而不是this
     } catch (e) {
       console.warn(
         "DrawingBoard: 未找到静态画笔纹理 'brush_static'。", // 中文翻译
@@ -84,6 +88,10 @@ export class DrawingBoard extends PIXI.Container {
     }
   }
 
+  // 显示画板并播放出现动画
+  // 设置当前要绘制的形状和颜色
+  // 播放画笔描绘轮廓的动画
+  // 准备绘画环境（设置遮罩、交互区域等）
   public async showForShape(
     shapeColorName: string,
     shapeNameKey: string
@@ -99,7 +107,7 @@ export class DrawingBoard extends PIXI.Container {
     this.currentBrushColor = this.getColorValue(shapeColorName);
     this.paintedPixelsCount = 0;
     this.paintLayer.clear();
-    this.paintLayer.alpha = 0.7; // 半透明颜料
+    this.paintLayer.alpha = 1; // 半透明颜料
 
     this.visible = true;
     if (
@@ -161,31 +169,48 @@ export class DrawingBoard extends PIXI.Container {
     }
   }
 
+  // 准备绘画环境（设置遮罩、交互区域等）
   private setupPaintingEnvironment(shapeNameKey: string): void {
     try {
+      const overlaySprite = new PIXI.Sprite(
+        AssetLoader.getTexture(`${shapeNameKey}_overlay`)
+      );
+      overlaySprite.anchor.set(0.5);
+      overlaySprite.position.set(358, 250);
+      overlaySprite.scale.set(0.5);
+      this.drawingArea.addChild(overlaySprite);
+
       const outlineTextureName = `${shapeNameKey}_outline`;
       const outlineTexture = AssetLoader.getTexture(outlineTextureName);
+
+      // 创建可见的轮廓精灵
       if (!this.outlineSprite) {
         this.outlineSprite = new PIXI.Sprite(outlineTexture);
-        this.outlineSprite.anchor.set(0.5); // 使轮廓精灵自身居中
+        this.outlineSprite.anchor.set(0.5);
         this.drawingArea.addChildAt(this.outlineSprite, 0);
       } else {
         this.outlineSprite.texture = outlineTexture;
       }
-      this.outlineSprite.position.set(0, 0); // 将轮廓定位在 drawingArea 的原点 (即 DrawingBoard 的原点)
+      this.outlineSprite.position.set(358, 250);
+      this.outlineSprite.scale.set(0.5);
       this.outlineSprite.visible = true;
-    } catch (e) {
-      console.error(
-        `DrawingBoard: 加载 ${shapeNameKey} 的轮廓纹理失败。`, // 中文翻译
-        e
-      );
-      return;
-    }
 
-    if (this.outlineSprite) {
-      this.paintLayer.mask = this.outlineSprite; // 使用轮廓精灵作为遮罩
-    } else {
-      this.paintLayer.mask = null;
+      // 创建单独的遮罩精灵(使用相同纹理)
+      const maskSprite = new PIXI.Sprite(
+        AssetLoader.getTexture(`${shapeNameKey}_mask`)
+      );
+      maskSprite.anchor.set(0.5);
+      maskSprite.position.set(358, 250);
+      maskSprite.scale.set(0.5);
+
+      // 使用maskSprite作为遮罩，而不是outlineSprite
+      this.paintLayer.mask = maskSprite;
+
+      // 将遮罩精灵添加到绘图区域但不显示(只用作遮罩)
+      this.drawingArea.addChild(maskSprite);
+    } catch (e) {
+      console.error(`DrawingBoard: 加载 ${shapeNameKey} 的轮廓纹理失败。`, e);
+      return;
     }
 
     if (this.brushSprite) this.brushSprite.visible = true;
@@ -200,12 +225,12 @@ export class DrawingBoard extends PIXI.Container {
       // 如果 drawingArea 自身的尺寸为 0x0 或太小，则为其设置 hitArea。
       // 这确保在轮廓的可视区域上捕获指针事件。
       // outlineSprite 的局部边界 (因为它锚定在 0.5 并在 drawingArea 的 0,0 处)
-      const localBounds = this.outlineSprite.getLocalBounds();
+      // const localBounds = this.outlineSprite.getLocalBounds();
       this.drawingArea.hitArea = new PIXI.Rectangle(
-        localBounds.x,
-        localBounds.y,
-        localBounds.width,
-        localBounds.height
+        bounds.x - 200,
+        bounds.y - 100,
+        bounds.width + 200,
+        bounds.height + 100
       );
     }
 
@@ -223,14 +248,22 @@ export class DrawingBoard extends PIXI.Container {
     // 我们假设如果 pointerdown 在 drawingArea 上，并且在常规边界内，则为有效开始。
     this.isPainting = true;
     this.paintAt(localPos);
-    if (this.brushSprite)
-      this.brushSprite.position.copyFrom(event.getLocalPosition(this)); // 画笔相对于 DrawingBoard 容器定位
+
+    // 修改画笔位置为相对于drawingArea的位置
+    if (this.brushSprite) {
+      const brushPos = event.getLocalPosition(this.drawingArea);
+      this.brushSprite.position.copyFrom(brushPos);
+    }
   }
 
   private onPaintMove(event: PIXI.FederatedPointerEvent): void {
     const localPos = event.getLocalPosition(this.paintLayer);
-    if (this.brushSprite)
-      this.brushSprite.position.copyFrom(event.getLocalPosition(this));
+
+    // 修改画笔位置为相对于drawingArea的位置
+    if (this.brushSprite) {
+      const brushPos = event.getLocalPosition(this.drawingArea);
+      this.brushSprite.position.copyFrom(brushPos);
+    }
 
     if (this.isPainting) {
       this.paintAt(localPos);
@@ -242,9 +275,8 @@ export class DrawingBoard extends PIXI.Container {
   }
 
   private paintAt(position: PIXI.Point): void {
-    this.paintLayer.beginFill(this.currentBrushColor); // Alpha 在 paintLayer 本身上设置
-    this.paintLayer.drawCircle(position.x, position.y, 15); // 画笔大小
-    this.paintLayer.endFill();
+    this.paintLayer.circle(position.x, position.y, 15); // 画笔大小
+    this.paintLayer.fill(this.currentBrushColor); // Alpha 在 paintLayer 本身上设置
 
     this.paintedPixelsCount++;
     this.checkCompletion();
@@ -335,7 +367,7 @@ export class DrawingBoard extends PIXI.Container {
       case "red":
         return 0xff0000;
       case "green":
-        return 0x00ff00;
+        return 0x66cf2d;
       case "blue":
         return 0x0000ff;
       case "yellow":

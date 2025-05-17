@@ -1,6 +1,7 @@
+import * as PIXI from "pixi.js";
+
 import { PixiApp } from "../core/PixiApp";
 import { BaseScene } from "../scenes/BaseScene";
-import * as PIXI from "pixi.js";
 
 export class SceneManager {
   private static currentScene: BaseScene | null = null;

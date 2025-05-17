@@ -118,7 +118,7 @@ export class GameManager {
       // 图片 - 路径需要调整为实际的Arts/Image目录结构
       {
         name: "sky",
-        url: "assets/Arts/Image/图层 269底图.png", // 原路径: assets/images/sky.png
+        url: "assets/Arts/Image/图层 265底图.png", // 原路径: assets/images/sky.png
         type: "image",
       },
       {
@@ -134,7 +134,7 @@ export class GameManager {
       },
       {
         name: "grass",
-        url: "assets/Arts/Image/图层 403草-1.png", // 原路径: assets/images/grass.png
+        url: "assets/Arts/Image/图层 274 拷贝底图.png", // 原路径: assets/images/grass.png
         type: "image",
       },
       {
@@ -165,6 +165,41 @@ export class GameManager {
       {
         name: "brush_static",
         url: "assets/Arts/Image/组 18画笔.png", // 原路径: assets/images/brush_static.png
+        type: "image",
+      },
+      {
+        name: "flower_part_stem",
+        url: "assets/Arts/Image/图层 403草-1.png", // 原路径: assets/images/flower_part_stem.png
+        type: "image",
+      },
+      {
+        name: "flower_part_leaf1",
+        url: "assets/Arts/Image/图层 402草-1.png",
+        type: "image",
+      },
+      {
+        name: "flower_part_leaf2",
+        url: "assets/Arts/Image/图层 404草-1.png",
+        type: "image",
+      },
+      {
+        name: "frog_outline",
+        url: "assets/Arts/Image/图层 2211青蛙画.png",
+        type: "image",
+      },
+      {
+        name: "frog_mask",
+        url: "assets/Arts/Image/青蛙-蓝色 拷贝 12青蛙画.png",
+        type: "image",
+      },
+      {
+        name: "frog_overlay",
+        url: "assets/Arts/frog_overlay.png",
+        type: "image",
+      },
+      {
+        name: "apple_outline",
+        url: "assets/Arts/Image/图层 1099花 拷贝 26.png", // 原路径: assets/images/apple_outline.png
         type: "image",
       },
       // Spine角色和对象 - 路径需要调整为实际的spine_animations目录结构
@@ -250,7 +285,7 @@ export class GameManager {
     console.log("游戏已准备就绪。");
 
     // 游戏可以通过UI按钮或自动启动
-    this.startGame();
+    // this.startGame();
   }
 
   public static startGame(): void {
@@ -262,7 +297,6 @@ export class GameManager {
       this.currentState = GameState.PLAYING;
       AudioManager.playBGM("bgm_main", true);
       TaskManager.startNextTask(); // 开始第一个（或下一个可用）任务
-      TaskManager.startNextTask(); // Start the first (or next available) task
       GameEventEmitter.emit("GAME_START");
     } else {
       console.warn(
@@ -313,16 +347,4 @@ export class GameManager {
     }
     // 基于 ticker 的其他全局更新
   }
-
-  public static transitionToState(newState: GameState): void {
-    console.log(`游戏状态从 ${this.currentState} 转换到 ${newState}`);
-    this.currentState = newState;
-    GameEventEmitter.emit("GAME_STATE_CHANGED", newState);
-  }
 }
-
-// AudioManager 中获取当前背景音乐名称的辅助方法（概念性）
-// AudioManager.ts 需要：
-// private static currentBGMName: string | null = null;
-// public static getCurrentBGMName(): string | null { return this.currentBGMName; }
-// 并在 playBGM 中设置 this.currentBGMName

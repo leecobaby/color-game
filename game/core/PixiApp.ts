@@ -42,7 +42,6 @@ export class PixiApp {
     options?: Partial<PIXI.ApplicationOptions>
   ): Promise<PixiApp> {
     if (!PixiApp.instance) {
-      console.log("创建PixiApp实例，选项:", options);
       if (!options) {
         throw new Error("首次实例化PixiApp时需要提供选项。");
       }
@@ -66,7 +65,6 @@ export class PixiApp {
     options?: Partial<PIXI.ApplicationOptions>
   ): PixiApp {
     if (!PixiApp.instance) {
-      console.log("同步创建PixiApp实例，选项:", options);
       if (!options) {
         throw new Error("首次实例化PixiApp时需要提供选项。");
       }

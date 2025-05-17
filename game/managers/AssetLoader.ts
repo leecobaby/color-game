@@ -1,9 +1,5 @@
 import * as PIXI from "pixi.js";
 import { Howl } from "howler";
-// 必须在某处导入 pixi-spine，通常在主游戏文件或 PixiApp 中，
-// 以便其资源解析器被注册。
-// import 'pixi-spine'; // 或者特定的 spine 版本，如 '@pixi-spine/all-4.1' 或类似版本
-// 目前，我们假设它在其他地方处理或类型是全局可用的。
 
 export interface Asset {
   name: string; // 此名称将用作 PIXI.Assets 中的别名，或用于派生 Spine 资源的别名

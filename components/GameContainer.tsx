@@ -10,6 +10,7 @@ const GameContainer: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [showStartButton, setShowStartButton] = useState(true);
 
   useEffect(() => {
     let pixiInst: PixiApp | null = null;
@@ -85,55 +86,41 @@ const GameContainer: React.FC = () => {
     initPixiApp();
   }, []);
 
+  const handleStartGame = () => {
+    setShowStartButton(false);
+    GameManager.startGame();
+  };
+
   return (
-    <div
-      style={{
-        position: "relative",
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
-      }}
-    >
+    <div className="relative w-screen h-screen overflow-hidden">
       {isLoading && (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(0,0,0,0.9)",
-            color: "white",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            fontSize: "2em",
-            zIndex: 100,
-          }}
-        >
+        <div className="absolute top-0 left-0 w-full h-full bg-black/90 text-white flex flex-col justify-center items-center text-2xl z-10">
           <div>[图片：可爱的小兔子加载图标]</div>
           <div>正在加载资源... {Math.round(loadingProgress * 100)}%</div>
-          <div
-            style={{
-              width: "50%",
-              backgroundColor: "#555",
-              borderRadius: "5px",
-              marginTop: "10px",
-            }}
-          >
+          <div className="w-1/2 bg-gray-600 rounded-md mt-2.5">
             <div
-              style={{
-                width: `${loadingProgress * 100}%`,
-                height: "20px",
-                backgroundColor: "#4CAF50",
-                borderRadius: "5px",
-              }}
+              className="h-5 bg-green-500 rounded-md"
+              style={{ width: `${loadingProgress * 100}%` }}
             ></div>
           </div>
         </div>
       )}
-      <div ref={canvasRef} className="w-3/4 h-3/4 mx-auto touch-none" />
+
+      {!isLoading && showStartButton && (
+        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/50">
+          <button
+            onClick={handleStartGame}
+            className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xl font-bold rounded-full shadow-lg transform hover:scale-105 transition-transform duration-300 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300"
+          >
+            开始游戏
+          </button>
+        </div>
+      )}
+
+      <div
+        ref={canvasRef}
+        className="w-7xl h-[592px] mx-auto mt-20 touch-none"
+      />
     </div>
   );
 };

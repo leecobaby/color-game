@@ -8,6 +8,7 @@ import { DrawingBoard } from "../entities/DrawingBoard";
 import { AudioManager } from "../managers/AudioManager";
 import { TaskManager, TaskStep, Task } from "../managers/TaskManager"; // 导入 TaskStep 和 Task
 import GameEventEmitter from "../utils/GameEventEmitter";
+import { ComplexFlower } from "../entities/complexFlower";
 // AnimationManager 未在此处直接使用（根据文档），Character/Palette/DrawingBoard 内部使用它
 // import { AnimationManager } from '../managers/AnimationManager';
 
@@ -22,9 +23,10 @@ export class MainScene extends BaseScene {
   private grass!: BackgroundElement;
   private bench!: BackgroundElement;
   private pond!: BackgroundElement;
-  private wildflowers: BackgroundElement[] = [];
+  // private wildflowers: BackgroundElement[] = [];
 
   private activePondFrogs: Character[] = [];
+  private complexFlowers: ComplexFlower[] = [];
 
   constructor() {
     super();
@@ -65,76 +67,89 @@ export class MainScene extends BaseScene {
   setupBackground(): void {
     const appWidth = this.pixiApp.app.screen.width;
     const appHeight = this.pixiApp.app.screen.height;
+    console.log("appWidth", appWidth);
+    console.log("appHeight", appHeight);
 
+    // 天空
     this.sky = new BackgroundElement("sky_bg", AssetLoader.getTexture("sky"));
-    this.sky.sprite.width = appWidth;
-    this.sky.sprite.height = appHeight;
+    this.sky.sprite.anchor.set(0.5);
+    this.sky.sprite.x = appWidth / 2;
+    this.sky.sprite.y = appHeight / 2;
     this.world.addChild(this.sky);
 
-    const cloudsTexture = AssetLoader.getTexture("clouds");
-    this.clouds = new BackgroundElement("clouds_bg", cloudsTexture);
-    this.clouds.sprite.y = appHeight * 0.1;
-    this.clouds.sprite.width = appWidth * 1.5; // 更宽以便移动
-    this.clouds.sprite.height = cloudsTexture.height; // 保持纵横比或显式设置
-    this.world.addChild(this.clouds);
-    this.clouds.startLoopingMovement(
-      { x: -30, y: 0 },
-      this.clouds.sprite.width
-    ); // 速度 30像素/秒，循环自身宽度
+    // // 云彩
+    // const cloudsTexture = AssetLoader.getTexture("clouds");
+    // this.clouds = new BackgroundElement("clouds_bg", cloudsTexture);
+    // this.clouds.sprite.y = appHeight * 0.1;
+    // this.clouds.sprite.width = appWidth * 1.5; // 更宽以便移动
+    // this.clouds.sprite.height = cloudsTexture.height; // 保持纵横比或显式设置
+    // this.world.addChild(this.clouds);
+    // this.clouds.startLoopingMovement(
+    //   { x: -30, y: 0 },
+    //   this.clouds.sprite.width
+    // ); // 速度 30像素/秒，循环自身宽度
 
+    // 草地
     const grassTexture = AssetLoader.getTexture("grass");
     this.grass = new BackgroundElement("grass_bg", grassTexture);
-    this.grass.sprite.width = appWidth;
+    this.grass.sprite.width = appWidth + 240;
+    this.grass.sprite.height = appHeight / 1.5;
     this.grass.sprite.anchor.set(0, 1);
+    this.grass.sprite.x = -40;
     this.grass.sprite.y = appHeight;
     this.world.addChild(this.grass);
 
-    const treeTexture = AssetLoader.getTexture("tree");
-    this.tree = new BackgroundElement("tree_main", treeTexture);
-    this.tree.sprite.anchor.set(0.5, 1);
-    this.tree.sprite.x = appWidth * 0.25;
-    this.tree.sprite.y = appHeight - grassTexture.height * 0.05; // 略高于草地基线
-    this.tree.sprite.scale.set(0.9); // 示例缩放
-    this.world.addChild(this.tree);
-    this.tree.startSwayingEffect(1, 7000); // 1 度，7 秒周期
+    // // 树
+    // const treeTexture = AssetLoader.getTexture("tree");
+    // this.tree = new BackgroundElement("tree_main", treeTexture);
+    // this.tree.sprite.anchor.set(0.5, 1);
+    // this.tree.sprite.x = appWidth * 0.25;
+    // this.tree.sprite.y = appHeight - grassTexture.height * 0.05; // 略高于草地基线
+    // this.tree.sprite.scale.set(0.9); // 示例缩放
+    // this.world.addChild(this.tree);
+    // this.tree.startSwayingEffect(1, 7000); // 1 度，7 秒周期
 
+    // 长椅
     const benchTexture = AssetLoader.getTexture("bench");
     this.bench = new BackgroundElement("bench_item", benchTexture);
     this.bench.sprite.anchor.set(0.5, 1);
-    this.bench.sprite.x = appWidth * 0.4;
-    this.bench.sprite.y = appHeight - grassTexture.height * 0.15;
-    this.bench.sprite.scale.set(0.8);
+    this.bench.sprite.x = appWidth * 0.62;
+    this.bench.sprite.y = appHeight - grassTexture.height * 0.48;
+    this.bench.sprite.scale.set(0.6);
     this.world.addChild(this.bench);
 
+    // 池塘
     const pondTexture = AssetLoader.getTexture("pond");
     this.pond = new BackgroundElement("pond_area", pondTexture);
-    this.pond.sprite.anchor.set(0.5, 0.5);
-    this.pond.sprite.x = appWidth * 0.75;
+    this.pond.sprite.anchor.set(0.5);
+    this.pond.sprite.x = appWidth;
     this.pond.sprite.y = appHeight * 0.65;
-    this.pond.sprite.scale.set(0.9);
+    this.pond.sprite.scale.set(0.6);
     this.world.addChild(this.pond);
 
-    const wildflowerTexture = AssetLoader.getTexture("wildflower");
-    const wildflowerPositions = [
-      { x: appWidth * 0.65, y: appHeight * 0.78, scale: 0.7 },
-      { x: appWidth * 0.7, y: appHeight * 0.8, scale: 0.65 },
-      { x: appWidth * 0.8, y: appHeight * 0.76, scale: 0.75 },
-    ];
-    wildflowerPositions.forEach((pos, index) => {
-      const flower = new BackgroundElement(
-        `wildflower_${index}`,
-        wildflowerTexture
-      );
-      flower.sprite.anchor.set(0.5, 1);
-      flower.sprite.position.set(pos.x, pos.y);
-      flower.sprite.scale.set(pos.scale);
-      flower.startSwayingEffect(
-        3 + Math.random() * 2,
-        3000 + Math.random() * 2000
-      );
-      this.world.addChild(flower);
-      this.wildflowers.push(flower);
-    });
+    // 野花
+    // const wildflowerTexture = AssetLoader.getTexture("wildflower");
+    // const wildflowerPositions = [
+    //   { x: appWidth * 0.65, y: appHeight * 0.78, scale: 0.7 },
+    //   { x: appWidth * 0.7, y: appHeight * 0.8, scale: 0.65 },
+    //   { x: appWidth * 0.8, y: appHeight * 0.76, scale: 0.75 },
+    // ];
+    // wildflowerPositions.forEach((pos, index) => {
+    //   const flower = new BackgroundElement(
+    //     `wildflower_${index}`,
+    //     wildflowerTexture
+    //   );
+    //   flower.sprite.anchor.set(0.5, 1);
+    //   flower.sprite.position.set(pos.x, pos.y);
+    //   flower.sprite.scale.set(pos.scale);
+    //   flower.startSwayingEffect(
+    //     3 + Math.random() * 2,
+    //     3000 + Math.random() * 2000
+    //   );
+    //   this.world.addChild(flower);
+    //   this.wildflowers.push(flower);
+    // });
+    this.createComplexFlowers();
   }
 
   setupCharacters(): void {
@@ -160,11 +175,6 @@ export class MainScene extends BaseScene {
     this.world.addChild(this.palette);
 
     this.drawingBoard = new DrawingBoard("main_drawing_board");
-    // 使画板居中
-    this.drawingBoard.position.set(
-      this.pixiApp.app.screen.width / 2,
-      this.pixiApp.app.screen.height / 2
-    );
     this.drawingBoard.visible = false;
     this.world.addChild(this.drawingBoard);
   }
@@ -269,7 +279,7 @@ export class MainScene extends BaseScene {
             this.rabbit.say(stepData.voiceOver);
           } else {
             // 如果此步骤没有特定的 voiceOver，则使用通用提示
-            this.rabbit.say(`sfx_lets_color_${colorOpt.targetWord}`); // 示例：需要 sfx_lets_color_frog 等。
+            // this.rabbit.say(`sfx_lets_color_${colorOpt.targetWord}`); // 示例：需要 sfx_lets_color_frog 等。
           }
         } else {
           console.error(
@@ -437,13 +447,76 @@ export class MainScene extends BaseScene {
   update(ticker: PIXI.Ticker): void {
     const deltaMS = ticker.deltaMS;
     if (this.tree?.isSwaying) this.tree.updateAnimation(deltaMS); // isSwaying 已公开
-    this.wildflowers.forEach((f) => {
-      if (f.isSwaying) f.updateAnimation(deltaMS); // isSwaying 已公开
-    });
+    // this.wildflowers.forEach((f) => {
+    //   if (f.isSwaying) f.updateAnimation(deltaMS); // isSwaying 已公开
+    // });
     if (this.clouds?.isLoopingMovement) this.clouds.updateAnimation(deltaMS); // isLoopingMovement 已公开
 
     // Spine 具有 autoUpdate=true 的实体不需要在此处手动更新，除非有特定逻辑。
     // DrawingBoard 如果需要（例如，画笔动画不与指针绑定），可能有其自己的更新逻辑
     this.drawingBoard?.update(ticker);
+
+    // 更新复合花的动画
+    if (this.complexFlowers) {
+      this.complexFlowers.forEach((flower) => flower.update(deltaMS));
+    }
+  }
+
+  createComplexFlowers(): void {
+    const appWidth = this.pixiApp.app.screen.width;
+    const appHeight = this.pixiApp.app.screen.height;
+
+    // 定义几种不同类型的花
+    const flowerTypes = [
+      {
+        name: "flower_0",
+        stemTexture: "flower_part_stem",
+        leafTextures: ["flower_part_leaf1"],
+        leafPositions: [
+          { x: -15, y: -50, angle: -20, scale: 0.8 },
+          // { x: 10, y: -70, angle: 30, scale: 0.7 },
+        ],
+      },
+      {
+        name: "flower_1",
+        stemTexture: "flower_part_stem",
+        leafTextures: ["flower_part_leaf1", "flower_part_leaf2"],
+        leafPositions: [
+          { x: -12, y: -40, angle: -15, scale: 0.75 },
+          // { x: 14, y: -60, angle: 25, scale: 0.7 },
+          { x: -64, y: -50, angle: -15, scale: 0.5 },
+        ],
+      },
+    ];
+
+    // 花的位置
+    const flowerPositions = [
+      // { x: appWidth * 0.25, y: appHeight * 0.8, scale: 0.6, type: 0 },
+      { x: appWidth * 0.8, y: appHeight * 0.52, scale: 0.3, type: 0 },
+      { x: appWidth * 0.825, y: appHeight * 0.53, scale: 0.5, type: 1 },
+      { x: appWidth * 0.9, y: appHeight * 0.46, scale: 0.55, type: 1 },
+    ];
+
+    // 创建花并添加到世界
+    this.complexFlowers = [];
+
+    flowerPositions.forEach((pos, index) => {
+      const typeConfig = flowerTypes[pos.type];
+      const flower = new ComplexFlower(`complex_flower_${index}`, typeConfig);
+
+      // 设置位置和缩放
+      flower.position.set(pos.x, pos.y);
+      flower.scale.set(pos.scale);
+
+      // 将整体设置为可排序（如果需要）
+      flower.sortableChildren = true;
+
+      // 启动摇摆动画
+      flower.startSwaying(2 + Math.random() * 3, 2800 + Math.random() * 1500);
+
+      // 添加到世界和跟踪数组
+      this.world.addChild(flower);
+      this.complexFlowers.push(flower);
+    });
   }
 }
