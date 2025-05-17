@@ -15,10 +15,15 @@ interface ColorOption {
 export interface TaskStep {
   id: string;
   action: string; // 例如 "RABBIT_SPEECH", "SHOW_PALETTE", "SHOW_DRAWING_BOARD_FOR_COLORING", "CHECK_REMAINING_TASK_ITEMS", "ALL_COLORS_DONE_FOCUS_POND"
-  voiceOver?: string;
-  rabbitAnimation?: string;
   nextStepDelay?: number; // 自动进行到下一步骤前的延迟（毫秒）
-  options?: Record<string, unknown> | any; // 根据 action 的灵活性选项，any 是临时的，最好具体化
+  options?: {
+    voiceOver?: string;
+    rabbitAnimation?: string;
+    colors?: ColorOption[];
+    count?: number;
+    selectedColorOption?: ColorOption;
+    [key: string]: unknown;
+  };
   awaitsEvent?: string; // 在继续之前等待的事件名称
   eventDataCheck?: { [key: string]: unknown }; // 可选：检查所等待事件中的特定数据
   itemListName?: string; // 对于 CHECK_REMAINING_TASK_ITEMS：当前任务上下文中保存项目列表的键

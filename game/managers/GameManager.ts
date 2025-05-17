@@ -50,8 +50,13 @@ export class GameManager {
         type: "audio",
       },
       {
-        name: "sfx_welcome",
-        url: "assets/Sounds/SFX/0001_调色板.wav", // 原路径: assets/audio/sfx/welcome_to_game.mp3
+        name: "vo_welcome",
+        url: "assets/Sounds/VO/0001_Max is making a.wav", // 原路径: assets/audio/sfx/welcome_to_game.mp3
+        type: "audio",
+      },
+      {
+        name: "vo_0002",
+        url: "assets/Sounds/VO/0002_Let’s draw and paint.wav", // 原路径: assets/audio/sfx/welcome_to_game.mp3
         type: "audio",
       },
       {
@@ -123,7 +128,7 @@ export class GameManager {
       },
       {
         name: "clouds",
-        url: "assets/Arts/Image/图层 265底图.png", // 原路径: assets/images/clouds.png
+        url: "assets/Arts/Image/图层 269底图.png", // 原路径: assets/images/clouds.png
         type: "image",
         // 注意：未找到确切的云朵图片，使用底图代替
       },

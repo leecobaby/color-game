@@ -9,6 +9,7 @@ import { AudioManager } from "../managers/AudioManager";
 import { TaskManager, TaskStep, Task } from "../managers/TaskManager"; // 导入 TaskStep 和 Task
 import GameEventEmitter from "../utils/GameEventEmitter";
 import { ComplexFlower } from "../entities/complexFlower";
+import { Tree } from "../entities/Tree";
 // AnimationManager 未在此处直接使用（根据文档），Character/Palette/DrawingBoard 内部使用它
 // import { AnimationManager } from '../managers/AnimationManager';
 
@@ -77,17 +78,16 @@ export class MainScene extends BaseScene {
     this.sky.sprite.y = appHeight / 2;
     this.world.addChild(this.sky);
 
-    // // 云彩
-    // const cloudsTexture = AssetLoader.getTexture("clouds");
-    // this.clouds = new BackgroundElement("clouds_bg", cloudsTexture);
-    // this.clouds.sprite.y = appHeight * 0.1;
-    // this.clouds.sprite.width = appWidth * 1.5; // 更宽以便移动
-    // this.clouds.sprite.height = cloudsTexture.height; // 保持纵横比或显式设置
-    // this.world.addChild(this.clouds);
-    // this.clouds.startLoopingMovement(
-    //   { x: -30, y: 0 },
-    //   this.clouds.sprite.width
-    // ); // 速度 30像素/秒，循环自身宽度
+    // 云彩
+    const cloudsTexture = AssetLoader.getTexture("clouds");
+    this.clouds = new BackgroundElement("clouds_bg", cloudsTexture);
+    this.clouds.position.set(0, appHeight * 0.01);
+    this.clouds.scale.set(0.4);
+    this.world.addChild(this.clouds);
+    this.clouds.startLoopingMovement(
+      { x: -30, y: 0 },
+      this.clouds.sprite.width
+    ); // 速度 30像素/秒，循环自身宽度
 
     // 草地
     const grassTexture = AssetLoader.getTexture("grass");
@@ -99,15 +99,11 @@ export class MainScene extends BaseScene {
     this.grass.sprite.y = appHeight;
     this.world.addChild(this.grass);
 
-    // // 树
-    // const treeTexture = AssetLoader.getTexture("tree");
-    // this.tree = new BackgroundElement("tree_main", treeTexture);
-    // this.tree.sprite.anchor.set(0.5, 1);
-    // this.tree.sprite.x = appWidth * 0.25;
-    // this.tree.sprite.y = appHeight - grassTexture.height * 0.05; // 略高于草地基线
-    // this.tree.sprite.scale.set(0.9); // 示例缩放
-    // this.world.addChild(this.tree);
-    // this.tree.startSwayingEffect(1, 7000); // 1 度，7 秒周期
+    // 树
+    const tree = new Tree("tree_main");
+    tree.position.set(0, appHeight - grassTexture.height * 0.01);
+    tree.scale.set(0.53);
+    this.world.addChild(tree);
 
     // 长椅
     const benchTexture = AssetLoader.getTexture("bench");
@@ -128,27 +124,6 @@ export class MainScene extends BaseScene {
     this.world.addChild(this.pond);
 
     // 野花
-    // const wildflowerTexture = AssetLoader.getTexture("wildflower");
-    // const wildflowerPositions = [
-    //   { x: appWidth * 0.65, y: appHeight * 0.78, scale: 0.7 },
-    //   { x: appWidth * 0.7, y: appHeight * 0.8, scale: 0.65 },
-    //   { x: appWidth * 0.8, y: appHeight * 0.76, scale: 0.75 },
-    // ];
-    // wildflowerPositions.forEach((pos, index) => {
-    //   const flower = new BackgroundElement(
-    //     `wildflower_${index}`,
-    //     wildflowerTexture
-    //   );
-    //   flower.sprite.anchor.set(0.5, 1);
-    //   flower.sprite.position.set(pos.x, pos.y);
-    //   flower.sprite.scale.set(pos.scale);
-    //   flower.startSwayingEffect(
-    //     3 + Math.random() * 2,
-    //     3000 + Math.random() * 2000
-    //   );
-    //   this.world.addChild(flower);
-    //   this.wildflowers.push(flower);
-    // });
     this.createComplexFlowers();
   }
 
@@ -205,7 +180,7 @@ export class MainScene extends BaseScene {
     if (
       !this.rabbit &&
       (stepData.action.includes("RABBIT") ||
-        stepData.rabbitAnimation ||
+        stepData.options?.rabbitAnimation ||
         stepData.action === "SHOW_PALETTE" ||
         stepData.action === "SHOW_DRAWING_BOARD_FOR_COLORING")
     ) {
@@ -220,28 +195,37 @@ export class MainScene extends BaseScene {
       case "RABBIT_SPEECH":
         this.rabbit.visible = true;
         if (
-          stepData.rabbitAnimation &&
+          stepData.options?.rabbitAnimation &&
           this.rabbit.spine?.skeleton.data.findAnimation(
-            stepData.rabbitAnimation
+            stepData.options.rabbitAnimation
           )
         ) {
-          this.rabbit.playAnimation(stepData.rabbitAnimation, false, () => {
-            if (stepData.voiceOver) {
-              AudioManager.playSFX(stepData.voiceOver, undefined, () => {
+          AudioManager.playSFX("vo_welcome");
+          this.rabbit.playAnimation(
+            stepData.options.rabbitAnimation,
+            false,
+            () => {
+              if (stepData.options?.voiceOver) {
+                AudioManager.playSFX(
+                  stepData.options.voiceOver,
+                  undefined,
+                  () => {
+                    GameEventEmitter.emit("TASK_STEP_ACTION_COMPLETE", {
+                      stepId: stepData.id,
+                      action: stepData.action,
+                    });
+                  }
+                );
+              } else {
                 GameEventEmitter.emit("TASK_STEP_ACTION_COMPLETE", {
                   stepId: stepData.id,
                   action: stepData.action,
                 });
-              });
-            } else {
-              GameEventEmitter.emit("TASK_STEP_ACTION_COMPLETE", {
-                stepId: stepData.id,
-                action: stepData.action,
-              });
+              }
             }
-          });
-        } else if (stepData.voiceOver) {
-          this.rabbit.say(stepData.voiceOver, undefined, () => {
+          );
+        } else if (stepData.options?.voiceOver) {
+          this.rabbit.say(stepData.options.voiceOver, undefined, () => {
             // 允许 say 在没有显式动画的情况下调用
             GameEventEmitter.emit("TASK_STEP_ACTION_COMPLETE", {
               stepId: stepData.id,
@@ -258,7 +242,7 @@ export class MainScene extends BaseScene {
         break;
 
       case "SHOW_PALETTE":
-        this.rabbit.say(stepData.voiceOver || "sfx_select_color");
+        this.rabbit.say(stepData.options?.voiceOver || "sfx_select_color");
         // 如果是重复访问调色板，TaskManager 会传递过滤后的选项
         await this.palette.showWithOptions(
           stepData.options?.colors as PaletteColorOption[] // 类型断言，因为我们知道 options.colors 应该是 PaletteColorOption[]
@@ -268,15 +252,18 @@ export class MainScene extends BaseScene {
 
       case "SHOW_DRAWING_BOARD_FOR_COLORING":
         // 选项应由 TaskManager 从 PALETTE_COLOR_SELECTED 事件填充
+        this.rabbit.playAnimation("hoverboard", true);
+
         const colorOpt = stepData.options
           ?.selectedColorOption as PaletteColorOption; // 类型断言
+
         if (colorOpt && colorOpt.colorName && colorOpt.targetWord) {
           await this.drawingBoard.showForShape(
             colorOpt.colorName,
             colorOpt.targetWord
           );
-          if (stepData.voiceOver) {
-            this.rabbit.say(stepData.voiceOver);
+          if (stepData.options?.voiceOver) {
+            this.rabbit.say(stepData.options.voiceOver);
           } else {
             // 如果此步骤没有特定的 voiceOver，则使用通用提示
             // this.rabbit.say(`sfx_lets_color_${colorOpt.targetWord}`); // 示例：需要 sfx_lets_color_frog 等。
@@ -296,7 +283,8 @@ export class MainScene extends BaseScene {
 
       case "ALL_COLORS_DONE_FOCUS_POND":
         await this.drawingBoard.hide();
-        if (stepData.voiceOver) this.rabbit.say(stepData.voiceOver);
+        if (stepData.options?.voiceOver)
+          this.rabbit.say(stepData.options.voiceOver);
         await this.focusOn(this.pond, 1.0, 1.2);
         this.spawnPondFrogs((stepData.options?.count as number) || 3); // 类型断言或提供默认值
         break;

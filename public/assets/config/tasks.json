@@ -8,17 +8,9 @@
           "id": "intro_welcome_rabbit",
           "action": "RABBIT_SPEECH",
           "options": {
-            "voiceOver": "sfx_welcome",
-            "rabbitAnimation": "welcome_anim",
+            "voiceOver": "vo_0002",
+            "rabbitAnimation": "portal",
             "nextStepDelay": 500
-          }
-        },
-        {
-          "id": "coloring_task_intro",
-          "action": "RABBIT_SPEECH",
-          "options": {
-            "voiceOver": "sfx_select_color_intro",
-            "rabbitAnimation": "explain_anim"
           }
         },
         {
